@@ -1,0 +1,63 @@
+- name: Create data dir
+  become: true
+  ansible.builtin.file:
+    path: "{{ vaultwarden_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0770"
+
+- name: Install podman
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - podman
+
+- name: Generate Admin Token
+  delegate_to: localhost
+  ansible.builtin.shell:
+    cmd: "set -o pipefail && echo -n {{ vaultwarden_admin_pass }} | argon2 \"$(openssl rand -base64 32)\" -e -id -k 65540 -t 3 -p 4"
+    executable: /usr/bin/bash
+  changed_when: false
+  register: admin_token
+
+- name: Run vaultwarden
+  become: true
+  containers.podman.podman_container:
+    name: vaultwarden.pod
+    image: docker.io/vaultwarden/server:latest
+    pull: always
+    recreate: "{{ vaultwarden_force_reload }}"
+    ports:
+      - 127.0.0.1:{{ vaultwarden_port }}:80
+    volume:
+      - /vaultwarden-data/:/data/
+    env:
+      ADMIN_TOKEN: "{{ admin_token.stdout | default(None) }}"
+      DOMAIN: "{{ vaultwarden_url }}"
+
+- name: Setup service
+  become: true
+  ansible.builtin.copy:
+    src: vaultwarden.pod.service
+    dest: /etc/systemd/system/vaultwarden.pod.service
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Start podman service
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: vaultwarden.pod
+    state: started
+    enabled: true
+
+- name: Add proxy for domain
+  vars:
+    nginx_service_external: false
+    nginx_service_subdomain: "{{ vaultwarden_subdomain }}"
+    nginx_service_location: http://localhost:8081
+  ansible.builtin.include_role:
+    name: nginx-proxy-service

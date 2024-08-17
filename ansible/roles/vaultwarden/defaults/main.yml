@@ -1,0 +1,5 @@
+vaultwarden_subdomain: "vault"
+vaultwarden_data_dir: /vaultwarden-data
+vaultwarden_url: "https://{{ vaultwarden_subdomain }}.{{ domain }}"
+vaultwarden_force_reload: false
+vaultwarden_port: 8081

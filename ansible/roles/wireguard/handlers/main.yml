@@ -1,0 +1,10 @@
+- name: Apply sysctl conf
+  become: true
+  ansible.builtin.command: sysctl -p
+  changed_when: false
+
+- name: Restart wireguard
+  become: true
+  ansible.builtin.service:
+    name: "wg-quick@{{ wireguard_iface }}"
+    state: restarted

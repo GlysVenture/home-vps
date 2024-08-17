@@ -1,0 +1,20 @@
+# allow only https
+server {
+    listen 80;
+    listen [::]:80;
+
+    return 301 https://$host$request_uri;
+}
+
+# drop everything by default
+server {
+    listen      443 ssl default_server;
+    listen      {{ nginx_internal_ip }}:443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name "";
+
+    ssl_certificate         {{ nginx_cert }};
+    ssl_certificate_key     {{ nginx_cert_key }};
+
+    return      403;
+}

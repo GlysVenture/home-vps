@@ -1,0 +1,34 @@
+- name: Install certbot + plugin
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+
+- name: Add cloudflare creds
+  become: true
+  block:
+    - name: Create secrets dir
+      ansible.builtin.file:
+        path: /root/.secrets
+        state: directory
+        mode: "0700"
+        owner: root
+        group: root
+    - name: Store cloudflare secrets
+      ansible.builtin.template:
+        src: cloudflare.ini.j2
+        dest: /root/.secrets/cloudflare.ini
+        mode: "0400"
+        owner: root
+        group: root
+
+- name: Generate first certificate with certbot
+  become: true
+  ansible.builtin.shell:
+    cmd: >
+      /usr/bin/certbot certonly --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.ini
+      -d "{{ certbot_domain }},*.{{ certbot_domain }}" --preferred-challenges dns-01
+      -m "'{{ certbot_cloudflare_email }}'" --agree-tos --no-eff-email
+    creates: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"

@@ -1,0 +1,2 @@
+bind_ns_subdomain: ns1
+bind_subdomains: {}

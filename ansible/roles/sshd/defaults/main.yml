@@ -1,0 +1,4 @@
+sshd_allowed_ssh_keys: []
+sshd_key_only: true
+sshd_port: 22
+sshd_listen_address: "0.0.0.0"

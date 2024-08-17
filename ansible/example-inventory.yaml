@@ -1,0 +1,42 @@
+all:
+  vars:
+    user_passwd: <passwd>
+    root_passwd: <root passwd>
+
+    public_ip: <ip>
+    internal_ip: <arbitrary local ip>
+    internal_subnet: <arbitrary local subnet>
+
+    sshd_allowed_ssh_keys:
+      - <public ssh key>
+
+    domain: <your domain>
+    bind_subdomains:
+      www: "{{ internal_ip }}"
+      vault: "{{ internal_ip }}"
+      vpn: "<some ip>"
+
+    cloudflare_api_key: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_API_KEY') }}"
+    cloudflare_email: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_EMAIL') }}"
+
+    ufw_ssh_external: false
+
+    wireguard_peer_ip: <arbitrary local ip>
+    wireguard_peer_name: "ansible"
+    wireguard_client_privkey: <wg genkey output>
+
+    nginx_external: true
+
+    vaultwarden_admin_pass: <some passwd>
+  hosts:
+    vps:
+      ansible_host: "{{ public_ip }}"
+      ansible_port: 22
+      ansible_user: user
+      ansible_become_password: "{{ user_passwd }}"
+
+    vps-vpn:
+      ansible_host: "{{ internal_ip }}"
+      ansible_port: 22
+      ansible_user: user
+      ansible_become_password: "{{ user_passwd }}"

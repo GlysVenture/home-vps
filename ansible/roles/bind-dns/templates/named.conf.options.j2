@@ -1,0 +1,15 @@
+acl private-network {
+{{ bind_internal_subnet }};
+};
+
+options {
+        directory "/var/cache/bind";
+        allow-query { localhost; private-network; };
+        allow-transfer { localhost; };
+
+        listen-on port 53 { localhost; {{ bind_internal_ip }}; };
+
+        forwarders { 1.1.1.1; 8.8.8.8; };
+        recursion yes;
+        dnssec-validation auto;
+};

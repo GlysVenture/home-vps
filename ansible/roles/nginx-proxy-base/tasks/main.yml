@@ -1,0 +1,74 @@
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - nginx
+
+- name: Disable default site
+  become: true
+  notify: Restart nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Add https redirect
+  become: true
+  notify: Restart nginx
+  block:
+    - name: Add redirect drop site available
+      ansible.builtin.template:
+        src: redirect-drop.j2
+        mode: "644"
+        dest: /etc/nginx/sites-available/redirect-drop
+    - name: Enable redirect drop site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/redirect-drop
+        dest: /etc/nginx/sites-enabled/redirect-drop
+        owner: root
+        group: root
+        state: link
+
+- name: Allow on ufw any
+  become: true
+  when: nginx_external
+  block:
+    - name: Allow http 80
+      community.general.ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+    - name: Allow https 443
+      community.general.ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+
+- name: Allow on ufw internal
+  become: true
+  when: not nginx_external
+  block:
+    - name: Allow http 80
+      community.general.ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+        interface: "{{ nginx_wireguard_iface }}"
+        direction: in
+    - name: Allow https 443
+      community.general.ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+        interface: "{{ nginx_wireguard_iface }}"
+        direction: in
+
+- name: Add reload nginx as certbot renew hook
+  become: true
+  ansible.builtin.lineinfile:
+    line: /usr/sbin/service nginx reload
+    create: true
+    owner: root
+    group: root
+    mode: "0700"
+    path: /etc/letsencrypt/renewal-hooks/post/reload_nginx.sh

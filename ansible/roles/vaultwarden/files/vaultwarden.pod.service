@@ -1,0 +1,12 @@
+[Unit]
+Description=Vaultwarden/Bitwarden Server (Rust Edition)
+Documentation=https://github.com/dani-garcia/vaultwarden
+Wants=syslog.service
+
+[Service]
+Restart=on-failure
+ExecStart=/usr/bin/podman start -a vaultwarden.pod
+ExecStop=/usr/bin/podman stop vaultwarden.pod
+
+[Install]
+WantedBy=multi-user.target

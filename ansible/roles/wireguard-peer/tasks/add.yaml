@@ -1,0 +1,55 @@
+- name: Get config
+  become: true
+  ansible.builtin.shell:
+    cmd: "set -o pipefail && wg show | awk '/public key/{print $3}'"
+    executable: /usr/bin/bash
+  changed_when: false
+  register: result
+
+- name: Get server pubkey
+  ansible.builtin.set_fact:
+    wireguard_server_pubkey: "{{ result.stdout }}"
+
+- name: Create client privatekey if needed
+  when: wireguard_client_privkey is undefined
+  block:
+    - name: Get new client privkey
+      ansible.builtin.command: "wg genkey"
+      changed_when: false
+      register: result
+
+    - name: Store client privkey in var
+      ansible.builtin.set_fact:
+        wireguard_client_privkey: "{{ result.stdout }}"
+
+- name: Get client pubkey
+  ansible.builtin.command:
+    cmd: wg pubkey
+    stdin: "{{ wireguard_client_privkey }}"
+  changed_when: false
+  register: result
+
+- name: Store client pubkey in var
+  ansible.builtin.set_fact:
+    wireguard_client_pubkey: "{{ result.stdout }}"
+
+- name: Add peer to config
+  become: true
+  notify: Restart wireguard
+  ansible.builtin.blockinfile:
+    path: "/etc/wireguard/{{ wireguard_config }}"
+    marker_begin: "device {{ wireguard_peer_name | default(wireguard_client_pubkey | hash('md5')) }}"
+    marker_end: "end"
+    marker: "# {mark}"
+    prepend_newline: true
+    block: |
+      [Peer]
+      PublicKey = {{ wireguard_client_pubkey }}
+      AllowedIPs = {{ wireguard_peer_ip }}/{{ wireguard_subnet_mask }}
+
+- name: Create client config
+  delegate_to: localhost
+  ansible.builtin.template:
+    src: wgvps.conf.j2
+    mode: "0600"
+    dest: "{{ playbook_dir }}/wgvps.conf"

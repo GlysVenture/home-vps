@@ -1,0 +1,6 @@
+bind_zone: "{{ domain }}"
+bind_internal_ip: "{{ internal_ip }}"
+bind_internal_subnet: "{{ internal_subnet }}"
+bind_internal_iface: "{{ internal_iface | default('wg0') }}"
+bind_actual_subdomains: "{{ {bind_ns_subdomain: bind_internal_ip} | combine(bind_subdomains) }}"
+bind_zone_serial: "{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}"

@@ -1,0 +1,13 @@
+$TTL 8h
+@ IN SOA ns1.{{ bind_zone }}. hostmaster.{{ bind_zone }}. (
+                          {{ bind_zone_serial }} ; serial number
+                          1d         ; refresh period
+                          3h         ; retry period
+                          3d         ; expire time
+                          3h )       ; minimum TTL
+
+                  IN NS   ns1.{{ bind_zone }}.
+
+{% for subdomain, ip in bind_actual_subdomains.items() %}
+{{ subdomain }}              IN A    {{ ip }}
+{% endfor %}

@@ -1,0 +1,19 @@
+- name: Create site config
+  become: true
+  notify: Restart nginx
+  ansible.builtin.template:
+    src: service-site.j2
+    owner: root
+    group: root
+    mode: "0644"
+    dest: "/etc/nginx/sites-available/proxy-service-{{ nginx_service_subdomain }}"
+
+- name: Enable site config
+  become: true
+  notify: Restart nginx
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/proxy-service-{{ nginx_service_subdomain }}
+    dest: /etc/nginx/sites-enabled/proxy-service-{{ nginx_service_subdomain }}
+    owner: root
+    group: root
+    state: link

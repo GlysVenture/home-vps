@@ -1,0 +1,9 @@
+- name: Add peer
+  when: wireguard_peer_state == 'present'
+  ansible.builtin.include_tasks:
+    file: add.yaml
+
+- name: Remove peer
+  when: wireguard_peer_state == 'absent'
+  ansible.builtin.include_tasks:
+    file: remove.yaml

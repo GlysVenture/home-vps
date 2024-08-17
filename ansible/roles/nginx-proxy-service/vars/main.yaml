@@ -1,0 +1,3 @@
+nginx_service_fqdn: "{{ nginx_service_subdomain }}.{{ nginx_domain }}"
+nginx_internal_ip: "{{ internal_ip }}"
+nginx_internal_subnet: "{{ internal_subnet }}"

@@ -1,0 +1,53 @@
+- name: Install wireguard
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    package:
+      - wireguard
+
+- name: Enable ipv4 forwarding
+  become: true
+  notify: Apply sysctl conf
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.conf
+    regexp: '^#?net\.ipv4\.ip_forward='
+    line: net.ipv4.ip_forward=1
+
+- name: Check if server config exists
+  become: true
+  ansible.builtin.stat:
+    path: "/etc/wireguard/{{ wireguard_config }}"
+  register: result
+
+- name: Create Server Config
+  become: true
+  when: not result.stat.exists
+  notify: Restart wireguard
+  block:
+    - name: Gen private key
+      ansible.builtin.command: wg genkey
+      register: privkey
+      changed_when: false
+    - name: Create server config
+      ansible.builtin.template:
+        src: wgserver.conf.j2
+        mode: "0600"
+        dest: "/etc/wireguard/{{ wireguard_config }}"
+
+- name: Enable wireguard
+  become: true
+  ansible.builtin.service:
+    name: "wg-quick@{{ wireguard_iface }}"
+    enabled: true
+    state: started
+
+- name: Set internal ip var if needed
+  when: internal_ip is undefined
+  ansible.builtin.set_fact:
+    internal_ip: wireguard_iface_ip
+
+- name: Set internal subnet var if needed
+  when: internal_subnet is undefined
+  ansible.builtin.set_fact:
+    internal_subnet: "{{ wireguard_subnet }}/{{ wireguard_subnet_mask }}"

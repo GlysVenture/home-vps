@@ -1,0 +1,2 @@
+nginx_wireguard_iface: "{{ wireguard_iface | default('wg0') }}"
+nginx_internal_ip: "{{ internal_ip }}"

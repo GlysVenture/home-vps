@@ -1,0 +1,4 @@
+wireguard_config: "{{ wireguard_iface }}.conf"
+wireguard_subnet: "{{ (internal_subnet | split('/') | first) | default('192.168.42.0') }}"
+wireguard_subnet_mask: "{{ (internal_subnet | split('/'))[1] | default('24') }}"
+wireguard_iface_ip: "{{ internal_ip | default('192.168.42.1') }}"

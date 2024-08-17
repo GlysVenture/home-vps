@@ -1,0 +1,52 @@
+- name: Install bind
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    state: present
+    package:
+      - bind9
+
+- name: Config bind
+  become: true
+  notify: Restart bind
+  block:
+    - name: Setup dns options
+      ansible.builtin.template:
+        src: named.conf.options.j2
+        mode: "0644"
+        group: bind
+        dest: /etc/bind/named.conf.options
+
+    - name: Allow dns on ufw
+      community.general.ufw:
+        rule: allow
+        port: "53"
+        proto: udp
+        interface: "{{ bind_internal_iface }}"
+        direction: in
+
+- name: Add local zone
+  become: true
+  notify: Restart bind
+  block:
+    - name: Add zone config
+      ansible.builtin.blockinfile:
+        path: /etc/bind/named.conf.local
+        marker_begin: "zone {{ bind_zone }}"
+        marker_end: "end"
+        marker: "// {mark}"
+        prepend_newline: true
+        block: |
+          zone "{{ bind_zone }}" {
+              type master;
+              file "/etc/bind/{{ bind_zone }}.zone";
+              allow-query { {{ internal_subnet }}; };
+              allow-transfer { none; };
+          };
+
+    - name: Setup zone file
+      ansible.builtin.template:
+        src: zone.j2
+        group: bind
+        mode: "0640"
+        dest: "/etc/bind/{{ bind_zone }}.zone"

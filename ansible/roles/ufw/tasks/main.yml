@@ -1,0 +1,47 @@
+- name: Install ufw
+  become: true
+  ansible.builtin.apt:
+    state: present
+    package:
+      - ufw
+
+- name: Setup ufw
+  become: true
+  block:
+    - name: Set policy to deny in
+      community.general.ufw:
+        policy: deny
+        direction: incoming
+
+    - name: Set policy to allow out
+      community.general.ufw:
+        policy: allow
+        direction: outgoing
+
+    - name: Allow wireguard
+      community.general.ufw:
+        rule: allow
+        port: "{{ ufw_wireguard_port }}"
+        proto: udp
+
+    - name: Allow ssh all
+      community.general.ufw:
+        rule: allow
+        name: ssh
+      when: ufw_ssh_external
+
+    - name: Allow ssh internal
+      community.general.ufw:
+        rule: allow
+        name: ssh
+        interface: "{{ ufw_wireguard_iface }}"
+        direction: in
+      when: not ufw_ssh_external
+
+- name: Flush handlers before potentially cutting connections
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable UFW # Might cause disconnect
+  become: true
+  community.general.ufw:
+    state: enabled

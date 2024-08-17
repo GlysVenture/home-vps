@@ -1,0 +1,28 @@
+server {
+
+    listen {% if not nginx_service_external %}{{ nginx_internal_ip }}:{% endif %}443 ssl;
+{% if not nginx_service_external %}
+    allow  {{ nginx_internal_subnet }};
+    allow  127.0.0.1;
+    deny  all;
+{% endif %}
+    server_name {{ nginx_service_fqdn }};
+
+    access_log            /var/log/nginx/{{ nginx_service_subdomain }}.access.log;
+
+    location / {
+
+      proxy_set_header        Host $host;
+      proxy_set_header        X-Real-IP $remote_addr;
+      proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header        X-Forwarded-Proto $scheme;
+
+      proxy_pass          {{ nginx_service_location }};
+      proxy_read_timeout  90;
+
+      proxy_redirect      {{ nginx_service_location }} https://{{ nginx_service_fqdn }};
+    }
+
+    ssl_certificate {{ nginx_cert }};
+    ssl_certificate_key {{ nginx_cert_key }};
+}

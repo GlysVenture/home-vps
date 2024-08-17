@@ -1,0 +1,11 @@
+[Interface]
+Address = {{ wireguard_peer_ip }}/{{ wireguard_subnet_mask }}
+PrivateKey = {{ wireguard_client_privkey }}
+{% if wireguard_dns is defined %}
+DNS = {{ wireguard_dns }}
+{% endif %}
+
+[Peer]
+PublicKey = {{ wireguard_server_pubkey }}
+Endpoint = {{ wireguard_public_ip }}:{{ wireguard_port }}
+AllowedIPs = {{ wireguard_subnet }}/{{ wireguard_subnet_mask }}

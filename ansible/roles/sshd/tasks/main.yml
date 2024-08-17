@@ -1,0 +1,48 @@
+- name: Add allowed keys
+  loop: "{{ sshd_allowed_ssh_keys }}"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+    create: true
+    mode: "0644"
+    line: "{{ item }}"
+
+- name: Set ssh port
+  become: true
+  notify: Restart sshd
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port\s'
+    line: "Port {{ sshd_port }}"
+
+- name: Set ssh listen address
+  become: true
+  notify: Restart sshd
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "ListenAddress {{ sshd_listen_address }}"
+
+- name: Set to only allow key in config
+  when: sshd_key_only
+  become: true
+  notify: Restart sshd
+  block:
+    - name: Disable root login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin\s'
+        line: PermitRootLogin no
+    - name: Set AuthorizedKeysFile
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?AuthorizedKeysFile\s'
+        line: AuthorizedKeysFile .ssh/authorized_keys
+    - name: Enable Pubkey Auth
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication\s'
+        line: PubkeyAuthentication yes
+    - name: Disable Password Auth
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication\s'
+        line: PasswordAuthentication no

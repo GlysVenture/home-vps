@@ -1,0 +1,36 @@
+- name: Setup ssh key only
+  hosts: vps
+  vars:
+    ansible_password: "{{ user_passwd }}"
+  pre_tasks:
+    - name: Fix HW clock
+      become: true
+      ansible.builtin.command: hwclock --hctosys
+      changed_when: false
+    - name: Update Upgrade apt
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: full
+      become: true
+  roles:
+    - sshd
+
+- name: Setup vpn
+  hosts: vps
+  roles:
+    - wireguard
+    - wireguard-peer
+    - ufw
+  tasks:
+    - name: Ask activate wireguard
+      ansible.builtin.pause:
+        prompt: "Start wireguard using: wg-quick up {{ playbook_dir }}/wgvps.conf"
+
+- name: Setup else
+  hosts:
+    vps-vpn
+  roles:
+    - bind-dns
+    - certbot-cloudflare
+    - nginx-proxy-base
+    - vaultwarden
