@@ -3,3 +3,10 @@ vaultwarden_data_dir: /vaultwarden-data
 vaultwarden_url: "https://{{ vaultwarden_subdomain }}.{{ domain }}"
 vaultwarden_force_reload: false
 vaultwarden_port: 8081
+vaultwarden_is_eu: true
+vaultwarden_push_id:
+vaultwarden_push_key:
+vaultwarden_smtp_user:
+vaultwarden_smtp_pass:
+vaultwarden_smtp_server:
+vaultwarden_smtp_port: 465

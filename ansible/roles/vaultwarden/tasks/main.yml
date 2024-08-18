@@ -36,6 +36,20 @@
     env:
       ADMIN_TOKEN: "{{ admin_token.stdout | default(None) }}"
       DOMAIN: "{{ vaultwarden_url }}"
+      SIGNUPS_ALLOWED: false
+      PUSH_ENABLED: true
+      PUSH_INSTALLATION_ID: "{{ vaultwarden_push_id }}"
+      PUSH_INSTALLATION_KEY: "{{ vaultwarden_push_key }}"
+      PUSH_RELAY_URI: "{{ 'https://api.bitwarden.eu' if vaultwarden_is_eu else None }}"
+      PUSH_IDENTITY_URI: "{{ 'https://identity.bitwarden.eu' if vaultwarden_is_eu else None }}"
+      SMTP_HOST: "{{ vaultwarden_smtp_server }}"
+      SMTP_FROM: "vaultwarden@{{ domain }}"
+      SMTP_PORT: "{{ vaultwarden_smtp_port }}"
+      SMTP_SECURITY: force_tls
+      SMTP_USERNAME: "{{ vaultwarden_smtp_user }}"
+      SMTP_PASSWORD: "{{ vaultwarden_smtp_pass }}"
+      SMTP_AUTH_MECHANISM: "Login"
+      SHOW_PASSWORD_HINT: false
 
 - name: Setup service
   become: true
