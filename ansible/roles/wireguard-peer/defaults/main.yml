@@ -5,4 +5,4 @@ wireguard_subnet: "192.168.42.0"
 wireguard_subnet_mask: "24"
 wireguard_peer_ip: "192.168.42.2"
 wireguard_peer_state: present
-wireguard_dns: "{{ internal_ip }},1.1.1.1,8.8.8.8"
+wireguard_dns: "{{ internal_ip }}"

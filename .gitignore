@@ -1,5 +1,6 @@
 .env
 wgvps.conf
+wg*.conf
 test.yaml
 priv-*
 .vscode

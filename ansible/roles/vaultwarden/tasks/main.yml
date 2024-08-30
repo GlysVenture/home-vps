@@ -15,6 +15,7 @@
       - podman
 
 - name: Generate Admin Token
+  when: vaultwarden_admin_pass != ""
   delegate_to: localhost
   ansible.builtin.shell:
     cmd: "set -o pipefail && echo -n {{ vaultwarden_admin_pass }} | argon2 \"$(openssl rand -base64 32)\" -e -id -k 65540 -t 3 -p 4"
@@ -75,3 +76,37 @@
     nginx_service_location: http://localhost:8081
   ansible.builtin.include_role:
     name: nginx-proxy-service
+
+# Setup backups
+- name: Create backups dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /backups
+    mode: "0700"
+    owner: root
+    group: root
+
+- name: Create vaultwarden backups dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /backups/vaultwarden
+    mode: "0700"
+    owner: root
+    group: root
+
+- name: Create cron job
+  become: true
+  ansible.builtin.cron:
+    user: root
+    hour: "5"
+    minute: "7"
+    cron_file: vaultwarden-backup
+    name: backup vaultwarden data
+    job: >
+      /usr/bin/systemctl stop vaultwarden.pod ;
+      bckp="/backups/vaultwarden/vaultwarden-data_$(/usr/bin/date '+%Y%m%d-%H%M').tar.gz" ;
+      /usr/bin/tar -czf "$bckp" --mode "0640" -C / {{ vaultwarden_data_dir.split('/')[1] }} ;
+      /usr/bin/find /backups/vaultwarden -type f | /usr/bin/sort | /usr/bin/head -n -10 | /usr/bin/xargs /bin/rm
+      /usr/bin/systemctl start vaultwarden.pod

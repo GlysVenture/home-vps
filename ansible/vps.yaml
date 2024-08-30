@@ -34,3 +34,4 @@
     - certbot-cloudflare
     - nginx-proxy-base
     - vaultwarden
+    - backups

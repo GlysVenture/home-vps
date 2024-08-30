@@ -1,0 +1,9 @@
+backups_dir_list: []
+backups_mail_from: bckp@example.org
+backups_mail_target:
+backups_mail_smtp_user:
+backups_mail_smtp_pass:
+backups_mail_smtp_server:
+backups_mail_smtp_port:
+backups_rclone_dir:
+backups_rclone_remote: backups

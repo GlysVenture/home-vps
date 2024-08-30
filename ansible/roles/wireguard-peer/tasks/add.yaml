@@ -45,7 +45,7 @@
     block: |
       [Peer]
       PublicKey = {{ wireguard_client_pubkey }}
-      AllowedIPs = {{ wireguard_peer_ip }}/{{ wireguard_subnet_mask }}
+      AllowedIPs = {{ wireguard_peer_ip }}/32
 
 - name: Create client config
   delegate_to: localhost

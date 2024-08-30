@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# mail-backup cron weekly
+
+client_user=$(/usr/bin/awk -F "=" '/mailjet_smtp_user/ {print $2}' /root/.secrets/mailjet.ini)
+client_pass=$(/usr/bin/awk -F "=" '/mailjet_smtp_pass/ {print $2}' /root/.secrets/mailjet.ini)
+
+tempdir=$(/usr/bin/mktemp -d)
+timestamp=$(/usr/bin/date '+%Y%m%d-%H%M')
+zipfile="/tmp/bckp-full_$timestamp.tar.gz"
+
+{% for dir in backups_dir_list %}
+/usr/bin/cp $(/usr/bin/find /backups/{{ dir }}/ -type f | /usr/bin/sort | /usr/bin/tail -n 1) $tempdir
+{% endfor %}
+
+/usr/bin/tar -czf "$zipfile" --mode "0640" -C $tempdir . ;
+
+/usr/bin/swaks --to {{ backups_mail_target }} \
+ --from "{{ backups_mail_from }}" \
+ --h-Subject "vps {{ domain }} backup $timestamp" \
+ --body "You will find your VPS backup attached." \
+ --attach $zipfile \
+ --server {{ backups_mail_smtp_server }} \
+ --auth LOGIN \
+ --auth-user $client_user \
+ --auth-password $client_pass \
+ --tlsc \
+ --port {{ backups_mail_smtp_port }}
+
+/bin/rm -r $tempdir
+/bin/rm -r $zipfile
