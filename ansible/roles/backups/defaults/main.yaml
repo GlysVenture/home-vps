@@ -5,5 +5,5 @@ backups_mail_smtp_user:
 backups_mail_smtp_pass:
 backups_mail_smtp_server:
 backups_mail_smtp_port:
-backups_rclone_dir:
+backups_rclone_dir: rclone-vps-backups
 backups_rclone_remote: backups

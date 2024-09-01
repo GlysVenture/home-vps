@@ -2,6 +2,7 @@
   hosts: vps
   vars:
     ansible_password: "{{ user_passwd }}"
+    ansible_port: 22
   pre_tasks:
     - name: Fix HW clock
       become: true
@@ -25,6 +26,15 @@
     - name: Ask activate wireguard
       ansible.builtin.pause:
         prompt: "Start wireguard using: wg-quick up {{ playbook_dir }}/wgvps.conf"
+
+- name: Setup vpn peer
+  hosts: vps
+  vars:
+    wireguard_peer_ip: "{{ 2peer_ip }}"
+    wireguard_peer_name: "{{ 2peer_name }}"
+    wireguard_client_privkey: "{{ 2peer_privkey }}"
+  roles:
+    - wireguard-peer
 
 - name: Setup else
   hosts:

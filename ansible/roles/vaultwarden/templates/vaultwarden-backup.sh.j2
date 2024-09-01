@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# cron daily script to backup vaultwarden files
+
+/usr/bin/systemctl stop vaultwarden.pod
+
+bckp="/backups/vaultwarden/vaultwarden-data_$(/usr/bin/date '+%Y%m%d-%H%M').tar.gz" ;
+/usr/bin/tar -czf "$bckp" --mode "0640" -C / {{ vaultwarden_data_dir.split('/')[1] }} ;
+/usr/bin/find /backups/vaultwarden -type f | /usr/bin/sort | /usr/bin/head -n -10 | /usr/bin/xargs /bin/rm -f
+/usr/bin/systemctl start vaultwarden.pod

@@ -27,13 +27,15 @@
     - name: Allow ssh all
       community.general.ufw:
         rule: allow
-        name: ssh
+        port: "{{ ufw_ssh_port }}"
+        proto: tcp
       when: ufw_ssh_external
 
     - name: Allow ssh internal
       community.general.ufw:
         rule: allow
-        name: ssh
+        port: "{{ ufw_ssh_port }}"
+        proto: tcp
         interface: "{{ ufw_wireguard_iface }}"
         direction: in
       when: not ufw_ssh_external

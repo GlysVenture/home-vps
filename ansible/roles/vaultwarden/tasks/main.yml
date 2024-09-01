@@ -96,17 +96,26 @@
     owner: root
     group: root
 
-- name: Create cron job
+- name: Add backup script to cron.daily
   become: true
-  ansible.builtin.cron:
-    user: root
-    hour: "5"
-    minute: "7"
-    cron_file: vaultwarden-backup
-    name: backup vaultwarden data
-    job: >
-      /usr/bin/systemctl stop vaultwarden.pod ;
-      bckp="/backups/vaultwarden/vaultwarden-data_$(/usr/bin/date '+%Y%m%d-%H%M').tar.gz" ;
-      /usr/bin/tar -czf "$bckp" --mode "0640" -C / {{ vaultwarden_data_dir.split('/')[1] }} ;
-      /usr/bin/find /backups/vaultwarden -type f | /usr/bin/sort | /usr/bin/head -n -10 | /usr/bin/xargs /bin/rm
-      /usr/bin/systemctl start vaultwarden.pod
+  ansible.builtin.template:
+    src: vaultwarden-backup.sh.j2
+    dest: /etc/cron.daily/vaultwarden-backup
+    mode: "0744"
+    owner: root
+    group: root
+
+# - name: Create cron job
+#   become: true
+#   ansible.builtin.cron:
+#     user: root
+#     hour: "5"
+#     minute: "7"
+#     cron_file: vaultwarden-backup
+#     name: backup vaultwarden data
+#     job: >
+#       /usr/bin/systemctl stop vaultwarden.pod ;
+#       bckp="/backups/vaultwarden/vaultwarden-data_$(/usr/bin/date '+%Y%m%d-%H%M').tar.gz" ;
+#       /usr/bin/tar -czf "$bckp" --mode "0640" -C / {{ vaultwarden_data_dir.split('/')[1] }} ;
+#       /usr/bin/find /backups/vaultwarden -type f | /usr/bin/sort | /usr/bin/head -n -10 | /usr/bin/xargs /bin/rm
+#       /usr/bin/systemctl start vaultwarden.pod

@@ -5,6 +5,7 @@
     name:
       - rclone
       - swaks
+      - cron
 
 - name: Tell to setup rclone by hand
   ansible.builtin.pause:
@@ -18,7 +19,7 @@
     minute: "2"
     cron_file: rclone-backups
     name: push all backups to remote
-    job: "/usr/bin/rclone copy /backups {{ backups_rclone_remote }}:{{ backups_rclone_dir }}"
+    job: "/usr/bin/rclone sync /backups {{ backups_rclone_remote }}:{{ backups_rclone_dir }}"
 
 - name: Add mailjet creds
   become: true
